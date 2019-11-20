@@ -35,7 +35,7 @@ const getFollowing =  (username) =>{
     return new Promise((resolve,reject) => {resolve(undefined)})
 }
 
-app.post("/additem",verifyToken,(req,res) => {
+app.post("/additem",verifyToken, async(req,res) => {
     let content = req.body.content;
     if(!content){
         res.status(500).json({status: 'error', error: "no content"}); 
@@ -47,7 +47,7 @@ app.post("/additem",verifyToken,(req,res) => {
     if(req.body.childType==="retweet" && req.body.parent){
         childType = req.body.childType;
         parent = req.body.parent;
-        db.incrementretweets(parent);
+        await db.incrementretweets(parent);
     }else if(req.body.childType==="reply" && req.body.parent){
         childType = req.body.childType;
         parent = req.body.parent;}
@@ -268,12 +268,12 @@ app.post('/item/:id/like',verifyToken,(req,res) => {
                         res.status(500).json({status:'error', error:"error verifying key"});}
                     else{
                         if (typeof req.body.like === 'undefined' || req.body.like === true){
-                            database.incrementLikes(req.params.id,data.user.username).then((result => {
+                            db.incrementLikes(req.params.id,data.user.username).then((result => {
                                 res.status(200).json({status: 'OK'});
                             })).catch(err => { res.status(500).json({status: 'error'})});
                         } 
                         else{
-                            database.decrementLikes(req.params.id,data.user.username).then((result => {
+                            db.decrementLikes(req.params.id,data.user.username).then((result => {
                                 res.status(200).json({status: 'OK'});
                             })).catch(err => { res.status(500).json({status: 'error'})});
                         }
@@ -301,5 +301,5 @@ function setToken(req,res,next) {
     next();
 }
 
-app.listen(5000,"192.168.122.21");
+app.listen(5003,"192.168.122.21");
 

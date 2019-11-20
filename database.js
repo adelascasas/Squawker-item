@@ -6,9 +6,17 @@ const cassandra = require('cassandra-driver');
 
 
 
-mongoose.connect("mongodb://192.168.122.22/squawker",{ useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb://130.245.168.250/squawker",{ useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
 
+const casClient = new cassandra.Client({ contactPoints: ['192.168.122.30'], keyspace: 'media',localDataCenter:'datacenter1'});
+casClient.connect(function (err) {
+  if(err) { console.log(err);}
+  else{
+      console.log('connected');
+  }
+});
+  
 db.once('open', () => { 
     mongoose.model("users",mongoose.Schema({
            _id: String,
@@ -28,9 +36,29 @@ db.once('open', () => {
 });
 
 const elasticClient = new elasticsearch.Client({
-    host: 'http://192.168.122.23:9200',
+    host: 'http://130.245.168.208:9200',
     log: 'trace'
 });
+
+//Add media
+const addMedia = (id,blob,extension) => {
+    const query = 'INSERT INTO media (id, content,extension) VALUES (?, ?, ?) USING TTL ?';
+    const params = [id,blob,extension,1200];
+    return casClient.execute(query, params, { prepare: true });
+}
+
+//Delete media
+const delMedia = (id) => {
+    const query = 'DELETE FROM media WHERE id = ?';
+    const param = [id];
+    return casClient.execute(query,param,{prepare: true});
+}
+
+//Get media 
+const getMedia = (id) => {
+    const query = 'SELECT content,extension FROM media WHERE id = ?';
+    return casClient.execute(query, [id],{prepare: true});
+} 
 
 //Add Document
 const addDocument = (indexName,payload) => {
@@ -195,7 +223,10 @@ module.exports = {
     searchbyUsername,
     deletebyId,
     addDocument,
+    addMedia,
+    getMedia,
     incrementLikes,
     decrementLikes,
-    incrementretweets
+    incrementretweets,
+    delMedia
 };
