@@ -9,7 +9,7 @@ const cassandra = require('cassandra-driver');
 mongoose.connect("mongodb://130.245.168.250/squawker",{ useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
 
-const casClient = new cassandra.Client({ contactPoints: ['192.168.122.30'], keyspace: 'media',localDataCenter:'datacenter1'});
+const casClient = new cassandra.Client({ contactPoints: ['192.168.122.35'], keyspace: 'media',localDataCenter:'datacenter1'});
 casClient.connect(function (err) {
   if(err) { console.log(err);}
   else{
