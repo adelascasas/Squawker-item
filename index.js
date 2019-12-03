@@ -23,7 +23,7 @@ const Userexists = async function(req,res,next) {
         next();
     }
     else{
-        res.status(500).json({status: 'error', error: 'User not added'});
+        res.status(400).json({status: 'error', error: 'User not added'});
     }
 }
 
@@ -38,7 +38,7 @@ const getFollowing =  (username) =>{
 app.post("/additem",verifyToken, async(req,res) => {
     let content = req.body.content;
     if(!content){
-        res.status(500).json({status: 'error', error: "no content"}); 
+        res.status(400).json({status: 'error', error: "no content"}); 
         return;
     }
     let childType = "";
@@ -56,18 +56,18 @@ app.post("/additem",verifyToken, async(req,res) => {
     }
     mongoose.model('blacklist').findOne({token: req.token}).exec().then((doc) => {
         if(doc){
-             res.status(500).json({status: 'error', error: "you have been logged out"}); 
+             res.status(400).json({status: 'error', error: "you have been logged out"}); 
         }
         else{
                 jwt.verify(req.token, 'MySecretKey',(err, data)=>{
                     if(err) {
-                        res.status(500).json({status:'error', error:"error verifying key"});}
+                        res.status(400).json({status:'error', error:"error verifying key"});}
                     else{
                         mongoose.model('users').findOne({username: data.user.username}).exec().then((doc) => { 
-                            if(!media.every(elem => doc.media.indexOf(elem) > -1)){ res.status(500).json({status:'error', error:"media files not affiliated"}); return;}
+                            if(!media.every(elem => doc.media.indexOf(elem) > -1)){ res.status(400).json({status:'error', error:"media files not affiliated"}); return;}
                             mongoose.model('users').updateOne({username: data.user.username},
                                 {$pullAll:{ media: media}},
-                               (err, result) => {if(err){res.status(500).json({status: 'error'});}}
+                               (err, result) => {if(err){res.status(400).json({status: 'error'});}}
                             )
                             const item = {
                                 username: data.user.username,
@@ -84,7 +84,7 @@ app.post("/additem",verifyToken, async(req,res) => {
                             };
                             db.addDocument('squawks',item).then((resp)=>{
                                     res.status(200).json({status: 'OK',id: resp._id});
-                                }, (err) => {res.status(500).json({status:'error', error:"error adding item"});});
+                                }, (err) => {res.status(400).json({status:'error', error:"error adding item"});});
                             });
                         }   
                     });
@@ -107,7 +107,7 @@ app.get("/item/:id",(req,res) => {
         item.id = resp._id;
         res.json({status: 'OK',item});
     }, (err) => {
-        res.status(500);
+        res.status(400);
         res.json({status:'error', error:"item not found"});
     });
 });
@@ -148,7 +148,7 @@ app.post("/search",setToken,(req,res) => {
                 console.log(items);
                 res.status(200).json({status: 'OK', items});
                 }, (err) => {
-                res.status(500).json({status:'error', error:"items not found"});
+                res.status(400).json({status:'error', error:"items not found"});
             });   
     }
     else{
@@ -172,7 +172,7 @@ app.post("/search",setToken,(req,res) => {
                             console.log(items);       
                             res.status(200).json({status: 'OK', items});
                             }, (err) => {
-                            res.status(500).json({status:'error', error:"items not found"});
+                            res.status(400).json({status:'error', error:"items not found"});
                     });  
                 });
             });
@@ -183,12 +183,12 @@ app.post("/search",setToken,(req,res) => {
 app.delete('/item/:id',verifyToken,(req,res) => {
     mongoose.model('blacklist').findOne({token: req.token}).exec().then((doc) => {
         if(doc){
-             res.status(500).json({status: 'error', error: "you have been logged out"}); 
+             res.status(400).json({status: 'error', error: "you have been logged out"}); 
         }
         else{
             jwt.verify(req.token, 'MySecretKey',(err, data)=>{
                 if(err) {
-                    res.status(500).json({status:'error', error:"error verifying key"});}
+                    res.status(400).json({status:'error', error:"error verifying key"});}
                 else{
                     db.searchbyId("squawks",req.params.id).then((resp)=>{
                         let username = resp._source.username;
@@ -199,10 +199,10 @@ app.delete('/item/:id',verifyToken,(req,res) => {
                             res.json({status: 'OK'});
                         }
                         else{
-                            res.status(500).json({status:'error', error:"permission to delete denied"});
+                            res.status(400).json({status:'error', error:"permission to delete denied"});
                         }
                     }, (err) => {
-                        res.status(500).json({status:'error', error:"item not found"});
+                        res.status(400).json({status:'error', error:"item not found"});
                     });                 
                 }   
             });
@@ -219,12 +219,12 @@ app.post('/follow',verifyToken,Userexists,(req,res) => {
      }
      mongoose.model('blacklist').findOne({token: req.token}).exec().then((doc) => {
          if(doc){
-              res.status(500).json({status: 'error', error: "you have been logged out"}); 
+              res.status(400).json({status: 'error', error: "you have been logged out"}); 
          }
          else{
              jwt.verify(req.token, 'MySecretKey',(err, data)=>{
                  if(err) {
-                     res.status(500);
+                     res.status(400);
                      res.json({status:'error', error:"error verifying key"});}
                  else{
                        if(follow){
@@ -260,22 +260,22 @@ app.post('/follow',verifyToken,Userexists,(req,res) => {
 app.post('/item/:id/like',verifyToken,(req,res) => {
     mongoose.model('blacklist').findOne({token: req.token}).exec().then((doc) => {
         if(doc){
-             res.status(500).json({status: 'error', error: "you have been logged out"}); 
+             res.status(400).json({status: 'error', error: "you have been logged out"}); 
         }
         else{
                 jwt.verify(req.token, 'MySecretKey',(err, data)=>{
                     if(err) {
-                        res.status(500).json({status:'error', error:"error verifying key"});}
+                        res.status(400).json({status:'error', error:"error verifying key"});}
                     else{
                         if (typeof req.body.like === 'undefined' || req.body.like === true){
                             db.incrementLikes(req.params.id,data.user.username).then((result => {
                                 res.status(200).json({status: 'OK'});
-                            })).catch(err => { res.status(500).json({status: 'error'})});
+                            })).catch(err => { res.status(400).json({status: 'error'})});
                         } 
                         else{
                             db.decrementLikes(req.params.id,data.user.username).then((result => {
                                 res.status(200).json({status: 'OK'});
-                            })).catch(err => { res.status(500).json({status: 'error'})});
+                            })).catch(err => { res.status(400).json({status: 'error'})});
                         }
                      }   
                     });
@@ -287,7 +287,7 @@ app.post('/item/:id/like',verifyToken,(req,res) => {
 function verifyToken(req,res,next) {
     let token = req.cookies['token'];
     if(!token){ 
-        res.status(500);
+        res.status(400);
         res.json({status: 'error', error: 'User not logged in'});
     }
     else{
@@ -301,5 +301,5 @@ function setToken(req,res,next) {
     next();
 }
 
-app.listen(5003,"192.168.122.21");
+app.listen(5000,"192.168.122.39");
 
